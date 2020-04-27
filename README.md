@@ -1,5 +1,3 @@
-<img src="https://imgs.xkcd.com/comics/public_opinion.png">
-
 # political-media
 
 > How did media influence the 2016 presidential election?

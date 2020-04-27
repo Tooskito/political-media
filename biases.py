@@ -69,7 +69,7 @@ label_to_compass = {
 }
 
 # Query user to customize weights.
-if query_user("Would you like to configure how i.e. 'right', 'left' are weighted? (y/n) "):
+if query_user("Would you like to configure how compass labels i.e. 'right', 'left' are weighted? (y/n) "):
     label_to_compass["left"] = float( input("Enter a weight for 'left': ") )
     label_to_compass["lean left"] = float( input("Enter a weight for 'lean left': ") )
     label_to_compass["center"] = float( input("Enter a weight for 'center': ") )
@@ -86,12 +86,17 @@ print(biases_filtered)
 print()
 
 # Ask user if they would like to change/add new media sources.
-answer = query_user("Would you like to personally configure a given media source's compass? (y/n) ")
+print("Would you like to personally configure a given media source's compass weight? ")
+answer = query_user("(You cannot add a new source, data takes hours to scrape from Google.) (y/n) ")
 while answer:
     media_name = input("Enter in a media source's name: ")
     media_value = float(input(f'Enter in {media_name}\'s compass (right is pos, left is neg): '))
+    if media_name not in biases_raw.keys():
+        print(f'\'{media_name}\' is not in the list of keys.')
+        answer = query_user("Would you like to personally configure another source? (y/n) ")
+        continue
     biases_filtered[media_name] = media_value
-    biases_raw[media_name] = f'user: {media_value}' 
+    biases_raw[media_name] = f'user: {media_value}'
     answer = query_user("Would you like to personally configure another source? (y/n) ")
 print("Newspaper -> left-right compass weights are as follows.")
 print(biases_filtered)

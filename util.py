@@ -53,6 +53,11 @@ code_to_name = {
     'NE' : 'Nebraska'
 }
 
+# Invert above for usability.
+name_to_code = {
+    name: code for code, name in code_to_name.items()
+}
+
 # Helper function. Asks user if they would like to configure anything.
 def query_user(prompt):
     answer = input(prompt)

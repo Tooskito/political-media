@@ -29,7 +29,7 @@ biases_raw = {
     "politico":                             "lean left",
     "time":                                 "lean left",
     "the washington post":                  "lean left",
-    "ap":                                   "center",
+    "associated press":                     "center",
     "bbc":                                  "center",
     "bloomberg":                            "center",
     "christian science monitor":            "center",
@@ -55,6 +55,10 @@ biases_raw = {
     "newsmax":                              "right"
 }
 
+print('Media source -> Right-Left Label.')
+print(biases_raw)
+print()
+
 # Create dictionary to convert from labels i.e. 'right' to a number i.e. '1'.
 label_to_compass = {
     "left": -1,
@@ -65,7 +69,7 @@ label_to_compass = {
 }
 
 # Query user to customize weights.
-if query_user("Would you like to personally configure label -> compass? (y/n) "):
+if query_user("Would you like to configure how i.e. 'right', 'left' are weighted? (y/n) "):
     label_to_compass["left"] = float( input("Enter a weight for 'left': ") )
     label_to_compass["lean left"] = float( input("Enter a weight for 'lean left': ") )
     label_to_compass["center"] = float( input("Enter a weight for 'center': ") )
@@ -73,8 +77,21 @@ if query_user("Would you like to personally configure label -> compass? (y/n) ")
     label_to_compass["right"] = float( input("Enter a weight for 'right': ") )
 else:
     print('Using default values.')
+    print()
 
 # Apply dictionary comprehension to translate biases_raw with label_to_compass.
 biases_filtered = { key:label_to_compass[value] for (key, value) in biases_raw.items() }
+print("Media source -> left-right compass weights are as follows.")
+print(biases_filtered)
+print()
+
+# Ask user if they would like to change/add new media sources.
+answer = query_user("Would you like to personally configure a given media source's compass? (y/n) ")
+while answer:
+    media_name = input("Enter in a media source's name: ")
+    media_value = float(input(f'Enter in {media_name}\'s compass (right is pos, left is neg): '))
+    biases_filtered[media_name] = media_value
+    biases_raw[media_name] = f'user: {media_value}' 
+    answer = query_user("Would you like to personally configure another source? (y/n) ")
 print("Newspaper -> left-right compass weights are as follows.")
 print(biases_filtered)

@@ -20,41 +20,58 @@ group = lambda my_list: [
     my_list[i:min(len(kw_list), i+batch_size)] \
         for i in range(0, len(kw_list), batch_size) ] 
 
-# Build list of dates around election day.
-election_day = date(2016, 11, 8)
-date_list = [ [(election_day - timedelta(days=x+1)).strftime("%Y-%m-%d"), \
-    (election_day - timedelta(days=x)).strftime("%Y-%m-%d")] for x in range(30)][::-1]
-timeframe_list = [' '.join(dates) for dates in date_list]
-print("Loaded dates.")
-print(timeframe_list)
 
-# Prepare for loop.
-start = current_time_millis()
-composite = None
+big_start = current_time_millis()
 
-# For each date interval, request all newspaper interest by batch.
-for timeframe in timeframe_list:
-    # Grab batch of newspaper interest for a given day.
-    frames = []
-    for batch in group(kw_list):
-        pytrends.build_payload(batch, cat=0, timeframe=timeframe, geo='US', gprop='')
-        frames.append(pytrends.interest_by_region())
-        print("Got response for", batch)
-    result = pd.concat(frames, axis=1)
-    # Add to composite.
-    if composite is None:   composite = result
-    else:   composite = composite.add(result)
-    # Sleep so we don't get denied.
-    print('Composite is now', composite)
-    print('Done. Sleeping for 10 seconds.')
-    sleep(10)
+election_days = [ 
+    date(2004, 11, 2), 
+    date(2008, 11, 4), 
+    date(2012, 11, 6), 
+    date(2016, 11, 8) ]
 
-# Report how long it took.
-end = current_time_millis()
-print('All data retrieved in', end-start, 'ms')
+for election_day in election_days:
+    # Newline because output is chaotic.
+    print()
 
-# Save to file.
-name = 'popularity-data.csv'
-print('Saving result to', name)
-with open(name, 'w') as file:
-    file.write(composite.to_csv())
+    # Build 30-day interval before election.
+    print('Beginning scrape for year:', election_day.year)
+    date_list = [ [(election_day - timedelta(days=x+1)).strftime("%Y-%m-%d"), \
+        (election_day - timedelta(days=x)).strftime("%Y-%m-%d")] for x in range(30)][::-1]
+    timeframe_list = [' '.join(dates) for dates in date_list]
+    print("Loaded dates.")
+    print(timeframe_list)
+
+    # Set up checkpoints and composite.
+    small_start = current_time_millis()
+    composite = None
+
+    for timeframe in timeframe_list:
+        frames = []
+        for batch in group(kw_list):
+            pytrends.build_payload(batch, cat=0, timeframe=timeframe, geo='US', gprop='')
+            frames.append(pytrends.interest_by_region())
+            print("Got response for", batch)
+        result = pd.concat(frames, axis=1)
+        
+        # Add to composite.
+        if composite is None:   composite = result
+        else:   composite = composite.add(result)
+        
+        # Sleep so we don't get denied.
+        delay = 10
+        print('Done. Sleeping for', delay, 'seconds.')
+        sleep(delay)
+    
+    # Report how long it took to make 1500 requests!
+    small_end = current_time_millis()
+    print('All data for year', election_day.year, 'retrieved in', small_end-small_start, 'ms')
+
+    # Save to file.
+    name = f'popularity-data-{election_day.year}.csv'
+    print('Saving result to', name)
+    with open(name, 'w') as file:
+        file.write(composite.to_csv())
+
+# Report how long it took to make all requests.
+big_end = current_time_millis()
+print('All data written in', big_end-big_start, 'ms')
